@@ -42,39 +42,67 @@ function handleSymbol(symbol) {
     case "÷":
       handleMath(symbol);
       break;
+    case ".":
+      handleDecimal();
+      break;
+  }
+}
+function handleDecimal() {
+  if (buffer.indexOf(".") === -1) {
+    buffer += ".";
   }
 }
 function handleMath(symbol) {
-  if (buffer === "0") {
+  if (buffer === "0" && runningTotal === 0) {
     return;
   }
-  const intBuffer = parseInt(buffer);
 
-  if (runningTotal === 0) {
-    runningTotal = intBuffer;
-  } else {
-    flushOperation(intBuffer);
+  const intBuffer = parseFloat(buffer);
+  if (!isNaN(intBuffer)) {
+    if (runningTotal === 0) {
+      runningTotal = intBuffer;
+    } else {
+      flushOperation(intBuffer);
+    }
   }
+
   previousOperator = symbol;
   buffer = "0";
 }
 
 function flushOperation(intBuffer) {
+  const floatBuffer = parseFloat(buffer);
+  if (!isNaN(floatBuffer)) {
+    intBuffer = floatBuffer;
+  }
+
   if (previousOperator === "+") {
     runningTotal += intBuffer;
   } else if (previousOperator === "−") {
     runningTotal -= intBuffer;
   } else if (previousOperator === "×") {
     runningTotal *= intBuffer;
-  } else {
-    runningTotal /= intBuffer;
+  } else if (previousOperator === "÷") {
+    if (intBuffer !== 0) {
+      runningTotal /= intBuffer;
+    } else {
+      // Handle division by zero error
+      alert("Error: Division by zero!");
+      resetCalculator();
+      return;
+    }
   }
+
+  buffer = runningTotal.toFixed(2);
+  previousOperator = null;
 }
 
 function handleNumber(numberString) {
-  if (buffer === "0") {
+  if (buffer === "0" && numberString !== ".") {
     buffer = numberString;
-  } else {
+  } else if (numberString === "." && buffer.indexOf(".") === -1) {
+    buffer += ".";
+  } else if (numberString !== ".") {
     buffer += numberString;
   }
 }
